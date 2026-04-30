@@ -6,6 +6,7 @@ Created on Thu Dec 19 09:49:31 2019
 """
 
 import random
+import csv
 random.seed()
 
 def flatten(lst):
@@ -72,6 +73,71 @@ class Raw_input():
             border_before = [False for i in range(len(sentence))]
             border_before[0] = True
             self.border_before += border_before
+            
+    @classmethod
+    def from_csv(cls, filepath):
+        obj = cls.__new__(cls)  # create instance without calling __init__
+        obj.stimuli = []
+        obj.border_before = []
+
+        with open(filepath, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if not row:
+                    continue
+               
+                # If sentence is stored as one string per row
+                sentence = row[0].split()   # split into tokens
+               
+                obj.stimuli += sentence
+                border_before = [False] * len(sentence)
+                border_before[0] = True
+                obj.border_before += border_before
+
+        return obj
+
+    @classmethod
+    def from_csv_with_copies(cls, filepath, n_copies=1, shuffle=True, seed=None):
+        obj = cls.__new__(cls)  # create instance without calling __init__
+        obj.stimuli = []
+        obj.border_before = []
+
+        # --- Read sentences first (sentence-level structure) ---
+        sentences = []
+
+        with open(filepath, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if not row:
+                    continue
+
+                # sentence stored as one string per row
+                sentence = row[0].split()
+                if sentence and len(sentence)>2 and len(sentence)<15:
+                    sentences.append(sentence)
+
+        # --- Optional reproducibility ---
+        if seed is not None:
+            random.seed(seed)
+
+        # --- Duplicate dataset ---
+        sentences = sentences * n_copies
+
+        # --- Shuffle sentences (not tokens) ---
+        if shuffle:
+            random.shuffle(sentences)
+
+
+        # --- Flatten into stimuli and border_before ---
+        for sentence in sentences:
+            obj.stimuli += sentence
+
+            border_before = [False] * len(sentence)
+            border_before[0] = True
+            obj.border_before += border_before
+
+        return obj
+
     
     
     # def generate_sentence(self,cfg, symbol):

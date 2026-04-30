@@ -212,6 +212,17 @@ class Learner():
             # under condition save snapshot to file
         self.final_index = s2_index
         
+    def learn_n(self,stimuli_stream,n_trials):
+        self.n_reinf = 0
+        # initialize stimuli
+        s1 = SChunk(stimuli_stream.stimuli[0])
+        s2_index = 1
+        #for t in range(self.n_trials):
+        while self.n_reinf <= n_trials:
+            s1, s2_index = self.respond(stimuli_stream, s1, s2_index)
+            # under condition save snapshot to file
+        self.final_index = s2_index
+        
     def test(self,stimuli_stream,n_sent):
         self.test_success = []
         self.sentences = []

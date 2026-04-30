@@ -17,7 +17,7 @@ start_time = datetime.now()
 import scipy
 
 plt.rcParams.update({
-    "text.usetex": True,
+    "text.usetex": False,
     "font.family": "Helvetica"
 })
 
