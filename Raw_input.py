@@ -119,13 +119,18 @@ class Raw_input():
         # --- Optional reproducibility ---
         if seed is not None:
             random.seed(seed)
-
-        # --- Duplicate dataset ---
-        sentences = sentences * n_copies
-
+            
         # --- Shuffle sentences (not tokens) ---
         if shuffle:
             random.shuffle(sentences)
+            
+        print(filepath)
+        print('number of sentences:'+str(len(sentences)))
+        unique_count = len(set(tuple(sent) for sent in sentences))
+        print('unique sentences'+str(unique_count))
+
+        # --- Duplicate dataset ---
+        sentences = sentences * n_copies
 
 
         # --- Flatten into stimuli and border_before ---

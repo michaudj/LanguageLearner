@@ -10,6 +10,7 @@ Created on Thu Apr 30 13:34:17 2026
 from MyLearners import Learner,RWLearner
 from Raw_input import Raw_input, ProbabilisticGrammar
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 import concurrent.futures as cf
 from datetime import datetime
@@ -27,8 +28,8 @@ def logistic(x,k,x0):
 
 
 def run_simulation(l):
-    l.learn_n(stimuli_stream_3,n_trials)
-    l.learn_n(stimuli_stream_6,n_trials)
+    l.learn_n(stimuli_streams[0],n_trials)
+    l.learn_n(stimuli_streams[1],n_trials)
     return l
 
 def run_simulation_chrono(l):
@@ -40,7 +41,16 @@ def run_simulation_chrono(l):
 def run_simulation_anti_chrono(l):
     n= len(stimuli_streams)
     for i in range(n):
+        print(i)
         l.learn_n(stimuli_streams[n-i-1],n_trials)
+    return l
+
+def run_simulation_random(l):
+    n= len(stimuli_streams)
+    shuffled = random.sample(stimuli_streams,n)
+    for i in range(n):
+        print(i)
+        l.learn_n(shuffled[i],n_trials)
     return l
 
 def flatten(lst):
@@ -114,7 +124,39 @@ def plot_learning_curve(learnersC,learnersN,RWlearnersC,RWlearnersN):
     plt.show()
     
     
+def plot_learning_curve2(chrono,anti,random):
+    # Process the result   
+    colors = ['b','g','m']
+    ll = [chrono, anti, random]
+    lab = ['Chronological','Reverse','Random']
+    for i in range(3):
+        success, sent_len = get_success_and_length(ll[i])
+        
+        
+        window = 100  # number of trials in the moving window
 
+        ma_success = moving_average(success, window)
+        ma_trials = np.arange(len(ma_success)) + window // 2
+
+        plt.plot(ma_trials, ma_success, color=colors[i], label=lab[i])
+
+
+        #plt.axvline(x = 2*popt[-1],color = 'k')
+        # Plot the results
+        #plt.scatter(trial_vec,success,s = 2,c=colors[i],label = lab[i])
+        plt.xlabel('Number of trials')
+        plt.ylabel('Fraction of correct responses')
+        
+        
+        # Vertical lines every 5000 trials
+        x_max = plt.gca().get_xlim()[1]
+        for x in range(0, int(x_max) + 1, n_trials):
+            plt.axvline(x=x, color='k', linestyle='--', alpha=0.3)
+
+    #plt.colorbar()
+    plt.legend()
+    plt.savefig('LearningCurves_Comparison_RWQlearners100-550.pdf')
+    plt.show()
 
 ###############################################################
 #
@@ -147,8 +189,8 @@ RWLearner.negative_reinforcement = -10.
 #############################################################
 
 # number of simulations
-n_sim = 100
-n_trials = 4000
+n_sim = 10
+n_trials = 450
 
 #############################################################
 #
@@ -158,32 +200,20 @@ n_trials = 4000
 print('Creating the stimuli stream')
 
 stimuli_streams = []
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/3mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/6mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/9mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/12mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/15mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/18mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/21mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/24mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/27mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/30mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/33mo_tagged.csv', n_copies=10, shuffle=True))
-stimuli_streams.append(Raw_input.from_csv_with_copies('data/36mo_tagged.csv', n_copies=10, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/3mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/6mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/9mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/12mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/15mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/18mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/21mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/24mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/27mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/30mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/33mo_tagged.csv', n_copies=1, shuffle=True))
+stimuli_streams.append(Raw_input.from_csv_with_copies('data/36mo_tagged.csv', n_copies=1, shuffle=True))
 
-# Create stimuli stream
-stimuli_stream_3 = Raw_input.from_csv_with_copies('data/3mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_6 = Raw_input.from_csv_with_copies('data/6mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_9 = Raw_input.from_csv_with_copies('data/9mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_12 = Raw_input.from_csv_with_copies('data/12mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_15 = Raw_input.from_csv_with_copies('data/15mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_18 = Raw_input.from_csv_with_copies('data/18mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_21 = Raw_input.from_csv_with_copies('data/21mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_24 = Raw_input.from_csv_with_copies('data/24mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_27 = Raw_input.from_csv_with_copies('data/27mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_30 = Raw_input.from_csv_with_copies('data/30mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_33 = Raw_input.from_csv_with_copies('data/33mo_tagged.csv', n_copies=10, shuffle=True)
-stimuli_stream_36 = Raw_input.from_csv_with_copies('data/36mo_tagged.csv', n_copies=10, shuffle=True)
+
 
 print('Initializing learners')
 
@@ -193,10 +223,10 @@ typ = 'flexible'
 border = 'nxt'
 
 # Create as many learners as number of simulations.
-learnersC = [Learner(n_trials = n_trials, border = 'cont') for i in range(n_sim)]
-learnersN = [Learner(n_trials = n_trials, border = 'next') for i in range(n_sim)]
-RWlearnersC = [RWLearner(n_trials = n_trials, border = 'cont') for i in range(n_sim)]
-RWlearnersN = [RWLearner(n_trials = n_trials, border = 'next') for i in range(n_sim)]
+antilearnersN = [RWLearner(n_trials = n_trials, border = 'cont') for i in range(n_sim)]
+chronolearnersN = [RWLearner(n_trials = n_trials, border = 'cont') for i in range(n_sim)]
+randlearnersN = [RWLearner(n_trials = n_trials, border = 'cont') for i in range(n_sim)]
+#RWlearnersN = [RWLearner(n_trials = n_trials, border = 'next') for i in range(n_sim)]
 
 #learner = RWLearner(n_trials = n_trials, border = border)
 #learner.learn_with_snapshot(stimuli_stream, 'test.xlsx', [1000,2000,3000,4000], 5)
@@ -221,34 +251,34 @@ print('Running the simulation in parallel')
 #         # Combine the result with other results as necessary
         
 # # Run the simulation in parallel
-print('Q-learning with next sentence condition')
+print('Q-learning with next sentence condition: chronological')
 with cf.ThreadPoolExecutor() as executor:
     print("Number of worker threads:", executor._max_workers)
-    results = [executor.submit(run_simulation_chrono, l) for l in learnersN]
+    results = [executor.submit(run_simulation_chrono, l) for l in chronolearnersN]
     
     # Iterate over the results as they become available
     for future in cf.as_completed(results):
         result = future.result()
         
-# # # Run the simulation in parallel
-# print('RW Q-learning with continuous condition')
-# with cf.ThreadPoolExecutor() as executor:
-#     print("Number of worker threads:", executor._max_workers)
-#     results = [executor.submit(run_simulation_chrono, l) for l in RWlearnersC]
+# # Run the simulation in parallel
+print('Q-learning with next sentence condition: reverse chronological')
+with cf.ThreadPoolExecutor() as executor:
+    print("Number of worker threads:", executor._max_workers)
+    results = [executor.submit(run_simulation_anti_chrono, l) for l in antilearnersN]
     
-#     # Iterate over the results as they become available
-#     for future in cf.as_completed(results):
-#         result = future.result()
+    # Iterate over the results as they become available
+    for future in cf.as_completed(results):
+        result = future.result()
         
-# # # Run the simulation in parallel
-# print('RW Q-learning with next sentence condition')
-# with cf.ThreadPoolExecutor() as executor:
-#     print("Number of worker threads:", executor._max_workers)
-#     results = [executor.submit(run_simulation_chrono, l) for l in RWlearnersN]
+# # Run the simulation in parallel
+print('Q-learning with next sentence condition: random')
+with cf.ThreadPoolExecutor() as executor:
+    print("Number of worker threads:", executor._max_workers)
+    results = [executor.submit(run_simulation_random, l) for l in randlearnersN]
     
-#     # Iterate over the results as they become available
-#     for future in cf.as_completed(results):
-#         result = future.result()
+    # Iterate over the results as they become available
+    for future in cf.as_completed(results):
+        result = future.result()
     
 #############################################################
 #
@@ -257,10 +287,10 @@ with cf.ThreadPoolExecutor() as executor:
 #############################################################
 print('Postprocessing')
 
-
-plot_learning_curve(learnersN,learnersN,learnersN,learnersN)
+plot_learning_curve2(chronolearnersN,antilearnersN,randlearnersN)
+# plot_learning_curve(chronolearnersN,antilearnersN,chronolearnersN,antilearnersN)
 #print(get_averaged_final_index(learnersC))
-print(get_averaged_final_index(learnersN))
+# print(get_averaged_final_index(learnersN))
 #print(get_averaged_final_index(RWlearnersC))
 # print(get_averaged_final_index(RWlearnersN))
 
